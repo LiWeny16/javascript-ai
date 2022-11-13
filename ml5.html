@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+
+</head>
+<style>
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+    input[type="button"]{
+        width: 52px;
+    }
+</style>
+
+<body>
+    <input type="file" id="file_choose" style="width: 200px;height:100px;border:1px solid pink;border-radius: 10px;">
+    <img id="image_1" style="border:0px solid; width: 43vh ;height:auto;">
+    <input type="button" value="分类" onclick="classify()">
+    <div id="result"></div>
+</body>
+<script>
+    document.getElementById('file_choose').addEventListener('change', fileChange, false)
+    function fileChange(evt) {
+        var file = evt.target.files[0]
+        if (!file) return;
+
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            document.getElementById("image_1").setAttribute('src', e.target.result)
+        }
+        reader.readAsDataURL(file);
+    }
+    var ismoduleLoaded = false
+    var classifier = ml5.imageClassifier('MobileNet', function () {
+        document.getElementById('result').innerHTML = "ml5加载成功"
+        ismoduleLoaded = true
+    })
+    function classify() {
+        if (!ismoduleLoaded) return;
+        classifier.classify(
+            document.getElementById('image_1'),
+            function (err, result) {
+                document.getElementById('result').innerHTML = JSON.stringify(result);
+                console.log(JSON.stringify(result));
+            }
+        )
+    }
+    let arr1 = 
+    [{ "label": "slide rule, slipstick", "confidence": 0.17169563472270966 },
+     { "label": "web site, website, internet site, site", "confidence": 0.1325271874666214 }, 
+     { "label": "menu", "confidence": 0.04853171482682228 }]
+
+
+</script>
+
+</html>

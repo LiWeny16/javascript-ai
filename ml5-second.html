@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Onion的人工智能</title>
+    <script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+
+</head>
+
+
+<body onload="pageLoaded()">
+   <video id="video_1" autoplay="true"></video><br>
+   <input type="button"  id="addPhone" value="addPhone" onclick="addPhone()">
+   <input type="button" id="addCup" value="addCup" onclick="addCup()">
+<br>
+   <input type="button"  id="addPhone" value="train" onclick="train()">
+   <input type="button" id="addCup" value="classify now" onclick="classify()">
+</body>
+<div id="log"></div>
+<script>
+    var video
+    var featureExtractor
+    var classifier 
+    function pageLoaded(){
+        initVideo();
+        initExtractor();
+    }
+    function initExtractor(){
+        featureExtractor = ml5.featureExtractor('MobileNet',()=>{
+            print_log('model loaded')
+            classifier = featureExtractor.classification(video,()=>{
+                print_log('classifier init')
+            })
+        })
+    }
+    function initVideo(){
+        video=document.getElementById("video_1")
+
+        if(!navigator.mediaDevices.getUserMedia) return;
+        navigator.mediaDevices.getUserMedia({video:true})
+        .then((stream)=>{
+            video.srcObject = stream;
+            print_log('video are ready')
+        })
+        .catch((err)=>{
+            print_log(err);
+        })
+    }
+    function addPhone(){
+        classifier.addImage('phone',()=>{print_log('phone added')})
+    }
+    function addCup(){
+        classifier.addImage('cup',()=>{print_log('cup added')})
+    }
+    function train(){
+        classifier.train((loss)=>{
+            print_log(loss)
+        })
+    }
+    function classify(){
+        classifier.classify((err,result)=>{
+            if(err) {
+                print_log(err)
+                return
+            }
+            else{
+                print_log(JSON.stringify(result))
+            }
+        })
+        print_log()
+    }
+
+
+
+    function print_log(content){
+        document.getElementById('log').innerHTML=`${content}<br>${document.getElementById('log').innerHTML}`
+    }
+</script>
+<style>
+    #log{
+        background-color: rgb(227, 227, 227);
+    }
+    </style>
+</html>

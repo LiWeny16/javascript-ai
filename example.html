@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset=utf-8 />
+
+<script src='https://unpkg.com/ml5@latest/dist/ml5.min.js'></script>
+</head>
+<body>
+
+<input type='file' id='file' style='width: 200px; height: 100px; border: dashed'/> <br/>
+<img id='image' style='min-width: 200px; min-height: 200px; border: solid 1px grey' /> <br/>
+<input type='button' value='分类' onclick='classify()' /> <br/><br/>
+<div id='result'></div>
+
+<script>
+document.getElementById('file').addEventListener('change', fileChanged, false);
+
+function fileChanged(evt)     {
+    var file = evt.target.files[0];
+    if(!file) return;
+    
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('image').setAttribute('src', e.target.result);
+    }
+    reader.readAsDataURL(file);
+}
+
+var modelLoaded = false;
+var classifier = ml5.imageClassifier('MobileNet', function() {
+    // console.log('model loaded');
+    document.getElementById('result').innerHTML = 'model loaded';
+    modelLoaded = true;
+});
+
+function classify() {
+    if(!modelLoaded) return;
+    
+    classifier.classify(
+        document.getElementById('image'), 
+        function(err, result) {
+            document.getElementById('result').innerHTML = JSON.stringify(result);
+        }
+    )
+}
+</script>
+
+</body>
+</html>
