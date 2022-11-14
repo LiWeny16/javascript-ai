@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Regression</title>
+<script src='./ml5.min.js'></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/p5.js/1.1.9/p5.min.js"></script>
+</head>
+<body>
+<script>
+
+let video, canvas, logger;
+let size = {w: 500, h: 400};
+let featureExtractor, regressor;
+let largeCt = 0, mediumCt = 0, smallCt = 0;
+let img;
+let value;
+
+// function preload() {
+//     img = loadImage('img/docStrange.png');
+// }
+
+function setup() {
+    video = createCapture(VIDEO);
+    video.size(size.w, size.h);
+    video.style('transform: rotateY(180deg)');
+    
+    canvas = createCanvas(size.w, size.h, WEBGL);
+    canvas.style('position: absolute; z-index: 10;');
+    
+    createDiv();
+    createButton('add large').mouseClicked(addLarge);
+    createButton('add medium').mouseClicked(addMedium);
+    createButton('add small').mouseClicked(addSmall);
+    
+    createDiv();
+    createButton('train').mouseClicked(train);
+    createButton('save').mouseClicked(saveModel);
+    createButton('load').mouseClicked(function() {
+        logging('loading custom model');
+        regressor.load(files.elt.files, function() {
+            logging('custom model loaded');
+        });
+    });
+    files = createFileInput();
+    files.attribute('multiple', true);
+    
+    createDiv();
+    createButton('go').mouseClicked(go);
+    
+    logger = createP();
+
+    initExtractor();
+}
+
+function initExtractor() {
+    featureExtractor = ml5.featureExtractor('MobileNet', function() {
+        logging('model loaded');
+        regressor = featureExtractor.regression(video, function() {
+            logging('regressor inited');
+        })
+    })
+}
+
+function saveModel() {
+    regressor.save();
+}
+
+/*function loadModel() {
+}*/
+
+function addLarge() {
+    regressor.addImage(1, function() {
+        logging('large added ' + ++largeCt);
+    })
+}
+function addMedium() {
+    regressor.addImage(0.5, function() {
+        logging('medium added ' + ++mediumCt);
+    })
+}
+function addSmall() {
+    regressor.addImage(0, function() {
+        logging('small added ' + ++smallCt);
+    })
+}
+
+function train() {
+    regressor.train(function(loss) {
+        logging(loss);
+    })
+}
+
+function go() {
+    setInterval(function() {
+        regressor.predict(function(err, result) {
+            if(err) {
+                logging(err);
+                return;
+            }
+            
+            // else
+            value = result.value;
+            logging(value);
+        })
+    }, 100);
+}
+
+function draw() {
+    // image(img, 0, 0, 50, 50);
+    if(!value) return;
+    
+    let r = value * 500 / 2;
+
+    //background('rgba(0,0,0, 0)');
+    rotateZ(frameCount * 0.01);
+    image(img, -r, -r, r * 2, r * 2);
+}
+
+function logging(c) {
+    logger.html(c + '<br/>' + logger.html());
+}
+</script>
+
+</body>
+</html>
